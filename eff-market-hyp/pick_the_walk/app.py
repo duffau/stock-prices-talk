@@ -24,6 +24,9 @@ RANDOM_WALK_PLOT_URL = "/randomwalk.png"
 STOCK_PRICE_PLOT_URL = "/stockprice.png"
 CORRECT_COUNTS = []
 WRONG_COUNTS = []
+LEFT_PLOT = None
+RIGHT_PLOT = None
+
 
 ticker = "^DJI"
 VAR = "Adj Close"
@@ -47,21 +50,27 @@ DF_PRICES["random_walk"] = prs.random_walk(mean=mean, std=std, n=len(DF_PRICES))
 
 @app.route('/', methods=["GET"])
 def frontpage():
+    global LEFT_PLOT
+    global RIGHT_PLOT 
     plot_urls = [RANDOM_WALK_PLOT_URL, STOCK_PRICE_PLOT_URL]
     random.shuffle(plot_urls)
-    left_plot, right_plot = plot_urls
-    print(f"LEFT: {left_plot}, RIGHT: {right_plot}")
-    return render_template('index.html', left_plot=left_plot, right_plot=right_plot)
+    LEFT_PLOT, RIGHT_PLOT = plot_urls
+    print(f"LEFT: {LEFT_PLOT}, RIGHT: {RIGHT_PLOT}")
+    return render_template('index.html', left_plot=LEFT_PLOT, right_plot=RIGHT_PLOT)
 
 @app.route('/', methods=["POST"])
 def register_counts():
     score_left = to_int(request.form['score_left'])
     score_right = to_int(request.form['score_right'])
 
-    CORRECT_COUNTS.append(score_left)
-    WRONG_COUNTS.append(score_right)
-    print(CORRECT_COUNTS)
-    print(WRONG_COUNTS)
+    if LEFT_PLOT == RANDOM_WALK_PLOT_URL:
+        CORRECT_COUNTS.append(score_left)
+        WRONG_COUNTS.append(score_right)
+    else:
+        CORRECT_COUNTS.append(score_right)
+        WRONG_COUNTS.append(score_left)
+    print("CORRECT_COUNTS:", CORRECT_COUNTS)
+    print("WRONG_COUNTS:", WRONG_COUNTS)
     return redirect(url_for('frontpage'))
 
 @app.route('/clear', methods=["GET"])
@@ -70,6 +79,8 @@ def clear_counts():
     global WRONG_COUNTS 
     CORRECT_COUNTS = []
     WRONG_COUNTS = []
+    print("CORRECT_COUNTS:", CORRECT_COUNTS)
+    print("WRONG_COUNTS:", WRONG_COUNTS)
     return redirect(url_for('frontpage'))
 
 
@@ -101,20 +112,17 @@ def plot_stockprice():
 def plot_stats():
     fig, ax = plt.subplots()
     fig.set_size_inches(6.4, 3.0)
-    null_hypothesis_success_rate, mean_success_rate, std_error, p_value, df = sts.calc_stats(CORRECT_COUNTS, WRONG_COUNTS) 
-    sts.plot_stats(ax, null_hypothesis_success_rate, mean_success_rate, std_error, p_value, df)
+    null_hypothesis_success_rate, mean_success_rate, std_error, p_value, df, message = sts.calc_stats(CORRECT_COUNTS, WRONG_COUNTS) 
+    sts.plot_stats(ax, null_hypothesis_success_rate, mean_success_rate, std_error, p_value, df, message)
     return nocache(fig_response(fig))
 
 
 @app.route("/stats")
 def stats():
+    print("CORRECT_COUNTS:", CORRECT_COUNTS)
+    print("WRONG_COUNTS:", WRONG_COUNTS)
     return render_template("stats.html", plot="/norm.png")
 
-def draw_random_scatter(ax, color):
-    """Draw a random scatterplot"""
-    x = [random.random() for i in range(100)]
-    y = [random.random() for i in range(100)]
-    ax.scatter(x, y, color=color)
 
 def fig_response(fig):
     """Turn a matplotlib Figure into Flask response"""
@@ -122,6 +130,7 @@ def fig_response(fig):
     if NO_CLUES:
         fig.tight_layout()
     fig.savefig(img_bytes)
+    plt.close(fig)
     img_bytes.seek(0)
     return send_file(img_bytes, mimetype='image/png')
 

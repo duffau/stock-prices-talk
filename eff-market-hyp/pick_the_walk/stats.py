@@ -10,19 +10,29 @@ def calc_stats(correct_counts, wrong_counts):
     n_correct = sum(correct_counts)
     n_wrong = sum(wrong_counts)
     null_hypothesis_success_rate = 0.5
+    df = n_trials - 1
+    if n_trials == 0:
+        return null_hypothesis_success_rate, None, None, None, None, "No trials - Nothing to show" 
+    
+    if n_correct == n_trials:
+        return null_hypothesis_success_rate, 1.0, 0.0000001, 0.0, df, "All correct! ... Sombody is cheating..."  
+
+    if n_correct == 0:
+        return null_hypothesis_success_rate, 0.0, 0.0000001, 0.0, df, "All wrong! ... Sombody is cheating..." 
+
     try:
         mean_success_rate = n_correct/n_trials
         std_error = (mean_success_rate*(1-mean_success_rate)/n_trials)**0.5
         t_value = (mean_success_rate - null_hypothesis_success_rate)/std_error
-        df = n_trials - 1
         p_value = (1-sps.t.cdf(abs(t_value), df))*2
+        message = None
     except ZeroDivisionError:
-        mean_success_rate, std_error, p_value, df = None, None, None, None
+        mean_success_rate, std_error, p_value, df, message = None, None, None, None, "Something went wrong ..."
 
-    return null_hypothesis_success_rate, mean_success_rate, std_error, p_value, df 
+    return null_hypothesis_success_rate, mean_success_rate, std_error, p_value, df, message 
 
 
-def plot_stats(ax, null_hypothesis_success_rate, mean_success_rate, std_error, p_value, df):
+def plot_stats(ax, null_hypothesis_success_rate, mean_success_rate, std_error, p_value, df, message):
     if mean_success_rate is not None:
         x = np.linspace(0, 1, num=100)
         y = sps.t.pdf(x, loc=null_hypothesis_success_rate, scale=std_error, df=df)
@@ -57,8 +67,10 @@ def plot_stats(ax, null_hypothesis_success_rate, mean_success_rate, std_error, p
                 arrowprops=dict(arrowstyle="->",
                                 connectionstyle="arc3,rad=0.3"),
                 )
+        if message:
+            ax.set_title(message)
     else:
-        ax.text(0.5, 0.5, "Nothing to plot",  ha='center', va='center')
+        ax.text(0.5, 0.5, message,  ha='center', va='center')
     return ax
 
 if __name__ == "__main__":
