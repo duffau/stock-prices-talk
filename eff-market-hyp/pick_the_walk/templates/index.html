@@ -1,0 +1,111 @@
+<!doctype html>
+
+<head>
+  <title>Pick The Walk!</title>
+  <style>
+    .showborder {
+      border: 1px solid black;
+    }
+
+    .center {
+      text-align: center;
+      font-family: "Droid Sans Mono", "Courier New", monospace;
+      margin: auto;
+    }
+
+    .left {
+      float: left;
+    }
+
+    .right {
+      float: right;
+    }
+
+    #plots {
+      margin: auto;
+      width: 1300px;
+      min-height: 600px;
+      display: block;
+      padding: 0;
+      border: 0;
+    }
+
+    .plot {
+      display: inline-block;
+      width: 640px;
+      min-height: 480px;
+      padding: 0;
+      margin: auto;
+      border: 0;
+    }
+
+    .submit-wrapper {
+      margin: auto;
+      display: block;
+    }
+
+    .submit-count {
+      display: inline-block;
+      width: 640px;
+    }
+
+    .controls {
+      display: block;
+      margin: auto;
+      height: 64px;
+      width: 800px;
+      /* background-color: yellow; */
+    }
+
+    .button {
+      background-color: #7e1e9c;
+      /* Green */
+      border: none;
+      color: white;
+      padding: 15px 32px;
+      margin: 5px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+    }
+
+    .input {
+      padding: 15px 32px;
+      margin-left: 25px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="plots">
+    <div class="plot showborder">
+      <h1 class="center">L</h1>
+      <img src={{ left_plot }} />
+    </div>
+    <div class="plot">
+      <h1 class="center">R</h1>
+      <img src={{ right_plot }} />
+    </div>
+    <div class="submit-wrapper">
+      <form method="POST" id="guesses" class="submit-wrapper">
+        <div class="submit-count">
+          <input name="score_left" class="input" placeholder="n guesses">
+        </div>
+        <div class="submit-count">
+          <input name="score_right" class="input" placeholder="n guesses">
+        </div>
+      </form>
+    </div>
+  </div>
+
+  </div>
+  <div class="controls center">
+    <input type="submit" form="guesses" class="button" value="Next">
+    <a href="{{ url_for('clear_counts') }}"><button class="button">Clear counts</button></a>
+    <a href="{{ url_for('stats') }}"><button class="button">Calc Stats</button></a>
+  </div>
+
+</body>
+
+</html>
