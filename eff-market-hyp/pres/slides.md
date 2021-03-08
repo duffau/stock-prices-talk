@@ -109,6 +109,14 @@ Survey of securities
 
 ---
 
+Returns
+-------
+
+Day-to-day returns are defined as,
+$$r_t = \frac{P_t - P_{t-1}}{P_{t-1}}$$
+
+---
+
 Autocorrelation
 ----------------
 ![Returns](../analysis/plots/returns.svg)
